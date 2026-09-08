@@ -1,0 +1,27 @@
+# Local application data and generated results
+/data/
+/downloads/
+.env
+.env.*
+!.env.example
+*.db
+*.db-shm
+*.db-wal
+*.sqlite*
+.keys.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# OS and local editor/agent files
+.DS_Store
+Thumbs.db
+.workbuddy/
+.workbuddy-ai/
+.local-upload-backup/
+.vscode/
+.idea/
