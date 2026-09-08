@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>RunningHub Desk</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark"><span></span><span></span><span></span></div>
+        <div>
+          <strong>RunningHub</strong>
+          <small>DESK / LOCAL</small>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="主导航">
+        <button class="nav-item active" data-view="create">
+          <span class="nav-icon">✦</span><span>创建任务</span>
+        </button>
+        <button class="nav-item" data-view="queue">
+          <span class="nav-icon">≡</span><span>任务队列</span><b id="queueBadge">0</b>
+        </button>
+        <button class="nav-item" data-view="results">
+          <span class="nav-icon">▦</span><span>结果图库</span>
+        </button>
+        <button class="nav-item" data-view="settings">
+          <span class="nav-icon">⚙</span><span>设置</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="queue-mini">
+          <div><span class="pulse-dot"></span><span id="workerState">队列空闲</span></div>
+          <small id="workerDetail">双站并行 · 站内串行</small>
+        </div>
+        <div class="local-only">● 仅监听 127.0.0.1</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="pageEyebrow">WORKFLOW CONSOLE</p>
+          <h1 id="pageTitle">创建任务</h1>
+        </div>
+        <div class="top-actions">
+          <button class="ghost-button" id="pauseQueueButton">暂停队列</button>
+          <button class="primary-button compact" id="openDownloadsButton">打开结果文件夹</button>
+        </div>
+      </header>
+
+      <section class="view active" id="view-create">
+        <div class="task-tabs-bar">
+          <div class="task-tabs" id="taskTabs" role="tablist" aria-label="创建任务标签页"></div>
+          <button class="new-task-tab" id="newTaskTabButton">＋ 新任务</button>
+        </div>
+        <div class="create-grid">
+          <div class="stack">
+            <section class="panel setup-panel">
+              <div class="panel-heading">
+                <div>
+                  <span class="step-number">01</span>
+                  <div><h2>连接与工作流</h2><p>选择站点，再读取远程工作流或导入 API JSON。</p></div>
+                </div>
+                <span class="status-chip" id="connectionChip">未连接</span>
+              </div>
+
+              <div class="form-row three">
+                <label>
+                  <span>站点</span>
+                  <select id="hostSelect">
+                    <option value="ai">国际站 · runninghub.ai</option>
+                    <option value="cn">中国站 · runninghub.cn</option>
+                  </select>
+                </label>
+                <label class="wide">
+                  <span>已保存工作流</span>
+                  <select id="profileSelect"><option value="">请选择或读取新工作流</option></select>
+                </label>
+                <button class="icon-button" id="deleteProfileButton" title="删除当前工作流">×</button>
+              </div>
+
+              <div class="form-row workflow-row">
+                <label class="grow">
+                  <span>Workflow ID</span>
+                  <input id="workflowIdInput" inputmode="numeric" value="2094379292875878402" placeholder="输入工作流 ID">
+                </label>
+                <button class="secondary-button" id="fetchWorkflowButton">从 RunningHub 读取</button>
+                <label class="secondary-button file-button">
+                  导入 JSON<input type="file" id="workflowFileInput" accept="application/json,.json">
+                </label>
+              </div>
+              <div class="microcopy" id="workflowMeta">读取后会自动展示所有可调参数；节点连线不会被修改。</div>
+            </section>
+
+            <section class="panel parameter-panel">
+              <div class="panel-heading simple">
+                <div>
+                  <span class="step-number">02</span>
+                  <div><h2>可调参数</h2><p>已按常用程度排序。只会提交标记为启用的字段。</p></div>
+                </div>
+                <div class="heading-actions">
+                  <button class="text-button" id="resetParamsButton">恢复原值</button>
+                  <button class="text-button" id="toggleAdvancedButton">显示全部</button>
+                </div>
+              </div>
+              <div id="emptyParams" class="empty-state compact-empty">
+                <div class="empty-orbit">◎</div>
+                <strong>先读取一个工作流</strong>
+                <span>程序会从 API JSON 自动识别文本、数字、开关和文件字段。</span>
+              </div>
+              <div id="parameterGroups" class="parameter-groups hidden"></div>
+            </section>
+          </div>
+
+          <aside class="stack sticky-stack">
+            <section class="panel launch-panel">
+              <div class="panel-heading simple">
+                <div>
+                  <span class="step-number">03</span>
+                  <div><h2>加入队列</h2><p>每个任务完成后自动启动下一个。</p></div>
+                </div>
+              </div>
+
+              <div class="run-count-control">
+                <span>执行次数</span>
+                <div class="stepper">
+                  <button data-step="-1">−</button>
+                  <input id="runsInput" type="number" min="1" max="200" value="1">
+                  <button data-step="1">＋</button>
+                </div>
+              </div>
+
+              <label>
+                <span>Seed 策略</span>
+                <select id="seedModeSelect">
+                  <option value="random">每次随机</option>
+                  <option value="increment">按步长递增</option>
+                  <option value="fixed">全部固定</option>
+                </select>
+              </label>
+              <div class="form-row two seed-options">
+                <label><span>起始 Seed</span><input id="seedValueInput" type="number" placeholder="读取节点值"></label>
+                <label><span>递增步长</span><input id="seedStepInput" type="number" value="1"></label>
+              </div>
+
+              <div class="option-list">
+                <label class="check-row">
+                  <input type="checkbox" id="autoDownloadCheck" checked>
+                  <span><b>自动保存结果</b><small>远程任务完成后立即下载</small></span>
+                </label>
+                <label class="check-row">
+                  <input type="checkbox" id="sendWorkflowCheck">
+                  <span><b>发送完整 JSON</b><small>通常关闭；远程版本不一致时启用</small></span>
+                </label>
+              </div>
+
+              <button class="launch-button" id="enqueueButton">
+                <span>加入串行队列</span><b>→</b>
+              </button>
+              <p class="queue-note"><span>i</span> 支持 <code>{{index}}</code>、<code>{{total}}</code>、<code>{{seed}}</code>、<code>{{date}}</code> 模板变量。</p>
+            </section>
+
+            <section class="panel live-card">
+              <div class="live-header"><span>LIVE QUEUE</span><b id="liveCount">0</b></div>
+              <div id="liveJob" class="live-empty">暂无运行中的任务</div>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="view-queue">
+        <section class="panel table-panel">
+          <div class="panel-heading">
+            <div><div><h2>分站任务队列</h2><p>.ai 与 .cn 可同时执行；同一站点的任务会逐个提交。</p></div></div>
+            <div class="heading-actions">
+              <button class="secondary-button small" id="queuePauseButton">暂停队列</button>
+              <button class="text-button danger" id="clearJobsButton">清理已结束</button>
+            </div>
+          </div>
+          <div class="summary-strip">
+            <div><span>等待</span><b id="summaryQueued">0</b></div>
+            <div><span>执行中</span><b id="summaryRunning">0</b></div>
+            <div><span>完成</span><b id="summarySuccess">0</b></div>
+            <div><span>失败</span><b id="summaryFailed">0</b></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>状态</th><th>工作流 / 批次</th><th>站点</th><th>远程 Task ID</th><th>更新时间</th><th></th></tr></thead>
+              <tbody id="jobsTableBody"></tbody>
+            </table>
+          </div>
+          <div id="jobsEmpty" class="empty-state"><strong>队列还是空的</strong><span>在“创建任务”中设置执行次数并加入队列。</span></div>
+        </section>
+      </section>
+
+      <section class="view" id="view-results">
+        <div class="results-toolbar">
+          <div>
+            <h2>结果图库</h2>
+            <p>结果图库与任务队列相互独立：清理队列不会删除图库里的任何结果。</p>
+            <p class="toolbar-hint" id="resultsCount"></p>
+          </div>
+          <div class="heading-actions">
+            <button class="secondary-button small" id="rescanGalleryButton">扫描本地文件</button>
+            <button class="secondary-button" id="downloadAllVisibleButton">保存所有未下载结果</button>
+          </div>
+        </div>
+        <div class="gallery-filters">
+          <input id="gallerySearch" type="search" placeholder="搜索生成信息：提示词、参数、文件名、任务 ID…" autocomplete="off">
+          <select id="galleryWorkflowFilter" title="按工作流筛选"><option value="">全部工作流</option></select>
+          <select id="galleryTypeFilter" title="按文件类型筛选">
+            <option value="">全部类型</option>
+            <option value="image">图片</option>
+            <option value="video">视频</option>
+            <option value="audio">音频</option>
+            <option value="text">文本</option>
+            <option value="other">其他</option>
+          </select>
+          <select id="gallerySort" title="排序方式">
+            <option value="newest">最新优先</option>
+            <option value="oldest">最旧优先</option>
+            <option value="name">文件名 A→Z</option>
+            <option value="workflow">按工作流分组</option>
+          </select>
+          <button class="ghost-button" id="galleryFilterClear" title="清除所有筛选">重置</button>
+        </div>
+        <div id="resultGrid" class="result-grid"></div>
+        <div id="resultsEmpty" class="empty-state large-empty"><div class="empty-orbit">◌</div><strong id="resultsEmptyTitle">结果将在这里出现</strong><span id="resultsEmptyHint">图片、视频和音频会自动分类展示。</span></div>
+      </section>
+
+      <section class="view" id="view-settings">
+        <div class="settings-grid">
+          <section class="panel">
+            <div class="panel-heading simple"><div><div><h2>API Keys</h2><p>两个站点分别保存，密钥不会发送到浏览器之外的任何服务。</p></div></div></div>
+            <div class="key-cards">
+              <article class="key-card" data-host="ai">
+                <div class="key-domain"><span class="domain-mark ai">AI</span><div><b>www.runninghub.ai</b><small id="aiKeyState">未保存</small></div></div>
+                <div class="key-input"><input type="password" id="aiKeyInput" autocomplete="off" placeholder="粘贴国际站 API Key"><button data-action="save-key" data-host="ai">保存</button></div>
+                <div class="key-actions"><button data-action="test-key" data-host="ai">测试连接</button><button data-action="delete-key" data-host="ai">移除</button></div>
+                <div class="account-info" id="aiAccountInfo"></div>
+              </article>
+              <article class="key-card" data-host="cn">
+                <div class="key-domain"><span class="domain-mark cn">CN</span><div><b>www.runninghub.cn</b><small id="cnKeyState">未保存</small></div></div>
+                <div class="key-input"><input type="password" id="cnKeyInput" autocomplete="off" placeholder="粘贴中国站 API Key"><button data-action="save-key" data-host="cn">保存</button></div>
+                <div class="key-actions"><button data-action="test-key" data-host="cn">测试连接</button><button data-action="delete-key" data-host="cn">移除</button></div>
+                <div class="account-info" id="cnAccountInfo"></div>
+              </article>
+            </div>
+            <p class="security-note">密钥存储方式：<b id="keyStoreLabel">检测中…</b>。界面只显示是否已保存，不会回传密钥内容。</p>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading simple"><div><div><h2>队列与保存</h2><p>这些设置会立即应用到下一次轮询和下载。</p></div></div></div>
+            <div class="settings-form">
+              <label><span>结果保存目录</span><input id="downloadDirInput" placeholder="本地绝对路径"></label>
+              <div class="form-row two">
+                <label><span>轮询间隔（秒）</span><input id="pollIntervalInput" type="number" min="2" max="60"></label>
+                <label><span>任务超时（分钟）</span><input id="timeoutInput" type="number" min="5" max="1440"></label>
+              </div>
+              <button class="primary-button" id="saveSettingsButton">保存设置</button>
+            </div>
+          </section>
+
+          <section class="panel span-two">
+            <div class="panel-heading simple"><div><div><h2>工作流管理</h2><p>查看已保存的 API JSON；密钥删除不会影响这些工作流。</p></div></div></div>
+            <div class="workflow-library-toolbar">
+              <label class="workflow-search"><span>搜索工作流</span><input id="workflowSearchInput" placeholder="名称或 Workflow ID"></label>
+              <label class="new-group-field"><span>新分组</span><span class="inline-control"><input id="newGroupInput" maxlength="80" placeholder="例如：人像 / 产品图"><button id="createGroupButton">创建</button></span></label>
+            </div>
+            <div id="profileCards" class="workflow-groups"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal hidden" id="previewModal" role="dialog" aria-modal="true">
+    <button class="modal-close" id="modalCloseButton">×</button>
+    <div class="modal-content" id="modalContent"></div>
+  </div>
+  <div class="toast-stack" id="toastStack"></div>
+  <input type="file" id="parameterFileInput" class="hidden">
+  <script src="/app.js" defer></script>
+</body>
+</html>
