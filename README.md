@@ -5,7 +5,7 @@
 ## 主要功能
 
 - `www.runninghub.ai` 与 `www.runninghub.cn` 双站点切换，API Key 分开保存。
-- macOS 上使用系统钥匙串保存密钥；其他系统回退到权限为 `600` 的本地文件。
+- macOS 上使用系统钥匙串保存密钥；其他系统使用本地密钥文件（详见“数据位置”）。
 - 从 RunningHub 读取 Workflow API JSON，或直接导入本地 JSON。
 - 工作流支持自定义名称、搜索和分组管理；创建页选择器也会按分组展示。
 - 从 RunningHub 读取后可选择覆盖当前工作流（保留自定义名称和分组），或输入名称另存为新的工作流。
@@ -45,11 +45,13 @@ cd runninghub-desk
 
 ### macOS
 
-双击 `run.command`，或者在项目目录运行：
+在项目目录运行：
 
 ```bash
 bash run.sh
 ```
+
+若希望双击启动，先运行 `chmod +x run.command run.sh`，再双击 `run.command`。
 
 ### Windows
 
