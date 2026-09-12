@@ -2,6 +2,19 @@
 
 一个本地运行的 RunningHub 工作流工作台。它面向需要连续生成、频繁调参和长期保存结果的个人用户，不需要安装 Node.js，也不需要额外 Python 包。
 
+## 页面预览
+
+所有页面都在本机运行，下面的截图使用空白数据目录生成，不包含 API Key、任务记录或本地文件。
+
+<p>
+  <img src="screenshots/create-page.png" alt="创建任务页面" width="48%">
+  <img src="screenshots/queue-page.png" alt="任务队列页面" width="48%">
+</p>
+<p>
+  <img src="screenshots/gallery-page.png" alt="结果图库页面" width="48%">
+  <img src="screenshots/settings-page.png" alt="设置页面" width="48%">
+</p>
+
 ## 主要功能
 
 - `www.runninghub.ai` 与 `www.runninghub.cn` 双站点切换，API Key 分开保存。
